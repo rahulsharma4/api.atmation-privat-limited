@@ -134,8 +134,10 @@ const getLeads = async (req, res) => {
   try {
     let query = {};
     if (req.user.role !== 'admin') {
-      query.owner = req.user.owner;
-      query.assignedTo = req.user._id;
+      query.$or = [
+        { assignedTo: req.user._id },
+        { createdBy: req.user._id }
+      ];
     }
 
     const leads = await Lead.find(query)

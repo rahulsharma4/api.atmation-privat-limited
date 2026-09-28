@@ -12,17 +12,29 @@ const getContacts = async (req, res) => {
 
     let query = {};
     if (req.user.role !== 'admin') {
-      query.assignedTo = req.user._id;
+      query.$or = [
+        { assignedTo: req.user._id },
+        { createdBy: req.user._id }
+      ];
     }
 
     // Filters from req.query
     if (req.query.search) {
       const searchRegex = new RegExp(req.query.search, 'i');
-      query.$or = [
+      const searchConditions = [
         { name: searchRegex },
         { phone: searchRegex },
         { address: searchRegex }
       ];
+      if (query.$or) {
+        query.$and = [
+          { $or: query.$or },
+          { $or: searchConditions }
+        ];
+        delete query.$or;
+      } else {
+        query.$or = searchConditions;
+      }
     }
 
     if (req.query.telecallerSearchTerm) {
@@ -156,7 +168,8 @@ const createContact = async (req, res) => {
       referredByCustomer: referredByCustomer || null,
       paymentMode: paymentMode || 'Direct',
       createdBy: req.user._id,
-      owner: req.user._id,
+      owner: req.user.role === 'admin' ? req.user._id : (req.user.owner || req.user._id),
+      assignedTo: req.body.assignedTo || (req.user.role === 'admin' ? null : req.user._id),
       statusHistory: [
         {
           status: initialStatus,
