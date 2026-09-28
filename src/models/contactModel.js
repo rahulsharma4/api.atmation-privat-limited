@@ -60,7 +60,7 @@ const contactSchema = mongoose.Schema(
     },
     source: {
       type: String,
-      enum: ['BTL', 'Employee Referral', 'Existing Customer Referral', 'Digital', 'Direct', 'Facebook Ads', 'Website', 'Website Form'],
+      enum: ['BTL', 'Employee Referral', 'Existing Customer Referral', 'Agent Referral', 'Digital', 'Direct', 'Facebook Ads', 'Website', 'Website Form'],
       default: 'Direct',
     },
     referredByStaff: {
@@ -70,6 +70,14 @@ const contactSchema = mongoose.Schema(
     referredByCustomer: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Lead',
+    },
+    agentName: {
+      type: String,
+      default: '',
+    },
+    agentPhone: {
+      type: String,
+      default: '',
     },
     referrerDetails: {
       type: String,

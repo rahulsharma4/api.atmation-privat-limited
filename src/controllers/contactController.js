@@ -142,7 +142,7 @@ const getContacts = async (req, res) => {
 // @access  Private/Admin
 const createContact = async (req, res) => {
   try {
-    const { name, phone, address, monthlyBill, status, callingStatus, subStatus, remarks, source, referredByStaff, referredByCustomer, paymentMode } = req.body;
+    const { name, phone, address, monthlyBill, status, callingStatus, subStatus, remarks, source, referredByStaff, referredByCustomer, agentName, agentPhone, paymentMode } = req.body;
     
     // Check for duplicate phone
     if (phone) {
@@ -166,6 +166,8 @@ const createContact = async (req, res) => {
       source: source || 'Direct',
       referredByStaff: referredByStaff || null,
       referredByCustomer: referredByCustomer || null,
+      agentName: agentName || '',
+      agentPhone: agentPhone || '',
       paymentMode: paymentMode || 'Direct',
       createdBy: req.user._id,
       owner: req.user.role === 'admin' ? req.user._id : (req.user.owner || req.user._id),
@@ -371,7 +373,7 @@ const convertContactToLead = async (req, res) => {
     const { 
       solarCapacity, roofType, propertyType, remarks, name, phone, address,
       monthlyBill, email, quotationAmount, technicalRemarks, companyName, companyAddress, gstNumber,
-      personalInfo, source, referredByStaff, referredByCustomer, paymentMode, assignedTo
+      personalInfo, source, referredByStaff, referredByCustomer, agentName, agentPhone, paymentMode, assignedTo
     } = req.body;
 
     const lead = new Lead({
@@ -392,6 +394,8 @@ const convertContactToLead = async (req, res) => {
       source: source || contact.source || 'Telecalling',
       referredByStaff: referredByStaff || contact.referredByStaff || null,
       referredByCustomer: referredByCustomer || contact.referredByCustomer || null,
+      agentName: agentName || contact.agentName || '',
+      agentPhone: agentPhone || contact.agentPhone || '',
       paymentMode: paymentMode || contact.paymentMode || 'Direct',
       assignedTo: assignedTo || null, // initially unassigned unless explicitly passed
       createdBy: req.user._id,
@@ -487,6 +491,8 @@ const updateContact = async (req, res) => {
     if (source !== undefined) contact.source = source;
     if (referredByStaff !== undefined) contact.referredByStaff = referredByStaff || null;
     if (referredByCustomer !== undefined) contact.referredByCustomer = referredByCustomer || null;
+    if (req.body.agentName !== undefined) contact.agentName = req.body.agentName || '';
+    if (req.body.agentPhone !== undefined) contact.agentPhone = req.body.agentPhone || '';
     if (paymentMode !== undefined) contact.paymentMode = paymentMode || 'Direct';
 
     contact.updatedBy = req.user._id;

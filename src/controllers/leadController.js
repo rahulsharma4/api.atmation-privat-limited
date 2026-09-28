@@ -5,7 +5,7 @@ const Notification = require('../models/notificationModel');
 // @route   POST /api/leads
 // @access  Private
 const createLead = async (req, res) => {
-  const { name, email, phone, address, monthlyBill, solarCapacity, roofType, propertyType, source, assignedTo, personalInfo, referredByStaff, referredByCustomer, paymentMode } = req.body;
+  const { name, email, phone, address, monthlyBill, solarCapacity, roofType, propertyType, source, assignedTo, personalInfo, referredByStaff, referredByCustomer, agentName, agentPhone, paymentMode } = req.body;
 
   try {
     const lead = await Lead.create({
@@ -20,6 +20,8 @@ const createLead = async (req, res) => {
       source: source || 'Direct',
       referredByStaff: referredByStaff || null,
       referredByCustomer: referredByCustomer || null,
+      agentName: agentName || '',
+      agentPhone: agentPhone || '',
       paymentMode: paymentMode || 'Direct',
       personalInfo,
       assignedTo: assignedTo || req.user._id,
@@ -212,6 +214,8 @@ const updateLead = async (req, res) => {
       if (req.body.source !== undefined) lead.source = req.body.source;
       if (req.body.referredByStaff !== undefined) lead.referredByStaff = req.body.referredByStaff || null;
       if (req.body.referredByCustomer !== undefined) lead.referredByCustomer = req.body.referredByCustomer || null;
+      if (req.body.agentName !== undefined) lead.agentName = req.body.agentName || '';
+      if (req.body.agentPhone !== undefined) lead.agentPhone = req.body.agentPhone || '';
 
       if (req.body.personalInfo) {
         lead.personalInfo = { ...lead.personalInfo, ...req.body.personalInfo };
