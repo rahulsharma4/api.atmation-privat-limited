@@ -4,16 +4,27 @@ const estimationItemSchema = new mongoose.Schema({
   product: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Inventory',
+  },
+  name: {
+    type: String,
     required: true,
+  },
+  brandName: {
+    type: String,
+    default: '',
   },
   quantity: {
     type: Number,
     required: true,
-    min: 1,
+    default: 1,
+  },
+  unit: {
+    type: String,
+    default: 'Nos',
   },
   price: {
     type: Number,
-    required: true,
+    default: 0,
   },
 });
 
@@ -24,13 +35,47 @@ const estimationSchema = new mongoose.Schema({
   },
   customerId: {
     type: mongoose.Schema.Types.ObjectId,
-    // Depending on what is referenced, could be Lead or Contact
-    // Storing as ObjectId without explicit ref to allow flexibility or just use string
   },
   customerType: {
     type: String,
     enum: ['Lead', 'Contact'],
     default: 'Lead',
+  },
+  address: {
+    type: String,
+    default: '',
+  },
+  phone: {
+    type: String,
+    default: '',
+  },
+  capacity: {
+    type: String,
+    default: '',
+  },
+  appNo: {
+    type: String,
+    default: '',
+  },
+  challanNo: {
+    type: String,
+    default: '',
+  },
+  dispatchedThrough: {
+    type: String,
+    default: '',
+  },
+  vehicleNo: {
+    type: String,
+    default: '',
+  },
+  driverMob: {
+    type: String,
+    default: '',
+  },
+  dispatchFrom: {
+    type: String,
+    default: 'Store',
   },
   items: [estimationItemSchema],
   totalAmount: {

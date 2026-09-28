@@ -37,43 +37,41 @@ const getEstimation = async (req, res) => {
 // @access  Private
 const createEstimation = async (req, res) => {
   try {
-    const { customerName, customerId, customerType, items, notes, status } = req.body;
+    const { 
+      customerName, customerId, customerType, address, phone, capacity, 
+      appNo, challanNo, dispatchedThrough, vehicleNo, driverMob, dispatchFrom, 
+      items, notes, status 
+    } = req.body;
     
     // Calculate total amount
     let totalAmount = 0;
-    for (const item of items) {
-      totalAmount += (item.quantity * item.price);
+    if (Array.isArray(items)) {
+      for (const item of items) {
+        totalAmount += ((item.quantity || 1) * (item.price || 0));
+      }
     }
 
     const estimationData = {
       customerName,
       customerId,
-      customerType,
-      items,
-      notes,
-      status: status || 'Draft',
+      customerType: customerType || 'Lead',
+      address: address || '',
+      phone: phone || '',
+      capacity: capacity || '',
+      appNo: appNo || '',
+      challanNo: challanNo || '',
+      dispatchedThrough: dispatchedThrough || '',
+      vehicleNo: vehicleNo || '',
+      driverMob: driverMob || '',
+      dispatchFrom: dispatchFrom || 'Store',
+      items: items || [],
+      notes: notes || '',
+      status: status || 'Finalized',
       totalAmount,
       createdBy: req.user._id
     };
 
     const estimation = await Estimation.create(estimationData);
-
-    // If Finalized, deduct from inventory
-    if (estimation.status === 'Finalized') {
-      for (const item of items) {
-        await Inventory.findByIdAndUpdate(item.product, {
-          $inc: { quantity: -item.quantity },
-          $push: {
-            history: {
-              action: 'ESTIMATION_FINALIZED',
-              quantityChange: -item.quantity,
-              remark: `Used in Estimation for ${customerName}`
-            }
-          }
-        });
-      }
-    }
-
     res.status(201).json(estimation);
   } catch (error) {
     res.status(400).json({ message: error.message });
@@ -90,36 +88,6 @@ const updateEstimationStatus = async (req, res) => {
 
     if (!estimation) {
       return res.status(404).json({ message: 'Estimation not found' });
-    }
-
-    if (estimation.status === 'Draft' && status === 'Finalized') {
-      // Deduct from inventory
-      for (const item of estimation.items) {
-        await Inventory.findByIdAndUpdate(item.product, {
-          $inc: { quantity: -item.quantity },
-          $push: {
-            history: {
-              action: 'ESTIMATION_FINALIZED',
-              quantityChange: -item.quantity,
-              remark: `Used in Estimation for ${estimation.customerName}`
-            }
-          }
-        });
-      }
-    } else if (estimation.status === 'Finalized' && status === 'Cancelled') {
-      // Restore inventory
-      for (const item of estimation.items) {
-        await Inventory.findByIdAndUpdate(item.product, {
-          $inc: { quantity: item.quantity },
-          $push: {
-            history: {
-              action: 'ESTIMATION_CANCELLED',
-              quantityChange: item.quantity,
-              remark: `Restored from Cancelled Estimation for ${estimation.customerName}`
-            }
-          }
-        });
-      }
     }
 
     estimation.status = status;
@@ -139,22 +107,6 @@ const deleteEstimation = async (req, res) => {
     const estimation = await Estimation.findById(req.params.id);
     if (!estimation) {
       return res.status(404).json({ message: 'Estimation not found' });
-    }
-
-    if (estimation.status === 'Finalized') {
-       // Restore inventory before deleting
-       for (const item of estimation.items) {
-         await Inventory.findByIdAndUpdate(item.product, {
-           $inc: { quantity: item.quantity },
-           $push: {
-             history: {
-               action: 'ESTIMATION_DELETED',
-               quantityChange: item.quantity,
-               remark: `Restored from Deleted Estimation for ${estimation.customerName}`
-             }
-           }
-         });
-       }
     }
 
     await estimation.deleteOne();
